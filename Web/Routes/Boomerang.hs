@@ -93,12 +93,12 @@ We now have two pieces:
 We tie these two pieces together use 'toSiteRouteT':
 
 > site :: Site Sitemap (IO ())
-> site = toSiteRouteT handle sitemap
+> site = boomerangSiteRouteT handle sitemap
 
 This gives as a standard 'Site' value that we can use with 'runSite'
 or with framework specific wrappers like @implSite@.
 
-If we were not using 'RouteT' then we could use @toSite@ instead.
+If we were not using 'RouteT' then we could use @boomerangSite@ instead.
 
 Now we can create a simple test function that takes the path info part
 of a url and runs our site:
@@ -144,8 +144,8 @@ module Web.Routes.Boomerang
     ( module Text.Boomerang
     , module Text.Boomerang.Strings
     , Router
-    , toSite
-    , toSiteRouteT
+    , boomerangSite
+    , boomerangSiteRouteT
     ) where
 
 import Text.Boomerang          -- (PrinterParser(..), ParserError(..), (:-), condenseErrors, parse1, showParserError, unparse1)
@@ -154,10 +154,10 @@ import Web.Routes           (RouteT(..), Site(..))
 
 type Router url = PrinterParser StringsError [String] () (url :- ())
 
-toSite :: ((url -> [(String, String)] -> String) -> url -> a) -- ^ handler function
+boomerangSite :: ((url -> [(String, String)] -> String) -> url -> a) -- ^ handler function
        -> Router url -- ^ the router
        -> Site url a
-toSite handler r@(PrinterParser pf sf) =
+boomerangSite handler r@(PrinterParser pf sf) =
     Site { handleSite = handler
          , formatPathSegments =  \url ->
              case unparseStrings r url of
@@ -171,7 +171,7 @@ toSite handler r@(PrinterParser pf sf) =
       showPos (MajorMinorPos s c) = "path segment " ++ show (s + 1) ++ ", character " ++ show c
 
 
-toSiteRouteT :: (url -> RouteT url m a) -- ^ handler function
+boomerangSiteRouteT :: (url -> RouteT url m a) -- ^ handler function
        -> Router url -- ^ the router
        -> Site url (m a)
-toSiteRouteT handler router = toSite (flip $ unRouteT . handler) router
+boomerangSiteRouteT handler router = boomerangSite (flip $ unRouteT . handler) router
