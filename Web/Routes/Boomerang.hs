@@ -24,7 +24,7 @@ use the versions from "Control.Category" instead.
 > import Control.Monad.Trans  (MonadIO(liftIO))
 > import Text.Boomerang.TH    (derivePrinterParsers)
 > import Web.Routes           (Site(..), RouteT(..), decodePathInfo, encodePathInfo, runSite, showURL)
-> import Web.Routes.Boomerang (Router, (<>), (</>), int, parse1, toSiteRouteT, anyString, parseStrings)
+> import Web.Routes.Boomerang (Router, (<>), (</>), int, parse1, boomerangSiteRouteT, anyString, parseStrings)
 
 Next we define a data type that represents our sitemap.
 
@@ -90,7 +90,7 @@ We now have two pieces:
 
  2. 'handle' - which maps 'Sitemap' to handlers
 
-We tie these two pieces together use 'toSiteRouteT':
+We tie these two pieces together use 'boomerangSiteRouteT':
 
 > site :: Site Sitemap (IO ())
 > site = boomerangSiteRouteT handle sitemap
