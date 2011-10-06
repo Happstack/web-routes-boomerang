@@ -148,13 +148,14 @@ module Web.Routes.Boomerang
     , boomerangSiteRouteT
     ) where
 
+import Data.Text              (Text, pack, unpack)
 import Text.Boomerang          -- (PrinterParser(..), ParserError(..), (:-), condenseErrors, parse1, showParserError, unparse1)
 import Text.Boomerang.Strings  -- (StringsPos(..), isComplete)
-import Web.Routes           (RouteT(..), Site(..))
+import Web.Routes             (RouteT(..), Site(..))
 
 type Router url = PrinterParser StringsError [String] () (url :- ())
 
-boomerangSite :: ((url -> [(String, String)] -> String) -> url -> a) -- ^ handler function
+boomerangSite :: ((url -> [(Text, Maybe Text)] -> Text) -> url -> a) -- ^ handler function
        -> Router url -- ^ the router
        -> Site url a
 boomerangSite handler r@(PrinterParser pf sf) =
@@ -162,8 +163,8 @@ boomerangSite handler r@(PrinterParser pf sf) =
          , formatPathSegments =  \url ->
              case unparseStrings r url of
                Nothing -> error "formatPathSegments failed to produce a url"
-               (Just ps) -> (ps, [])
-         , parsePathSegments = \paths -> mapLeft (showErrors paths) (parseStrings r paths)
+               (Just ps) -> (map pack ps, [])
+         , parsePathSegments = \paths -> mapLeft (showErrors paths) (parseStrings r $ map unpack paths)
          }
     where
       mapLeft f       = either (Left . f) Right
