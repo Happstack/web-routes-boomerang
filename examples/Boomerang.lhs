@@ -20,9 +20,13 @@ use the versions from "Control.Category" instead.
 > import Prelude              hiding (id, (.))
 > import Control.Category     (Category(id, (.)))
 > import Control.Monad.Trans  (MonadIO(liftIO))
+> import           Data.Text           (Text)
+> import qualified Data.Text           as Text
+> import qualified Data.Text.Encoding  as Text
+> import qualified Data.Text.IO        as Text
 > import Text.Boomerang.TH    (derivePrinterParsers)
-> import Web.Routes           (Site(..), RouteT(..), decodePathInfo, encodePathInfo, runSite, showURL)
-> import Web.Routes.Boomerang (Router, (<>), (</>), int, parse1, toSiteRouteT, anyString, parseStrings)
+> import Web.Routes           (Site(..), RouteT(..), runRouteT, decodePathInfo, encodePathInfo, runSite, setDefault, showURL)
+> import Web.Routes.Boomerang (Router, (<>), (</>), int, parse1, boomerangSite, anyString, parseStrings)
 
 Next we define a data type that represents our sitemap.
 
@@ -67,12 +71,12 @@ Next we have our function which maps a parsed route to the handler for
 that route. (There is nothing @boomerang@ specific about this
 function):
 
-> handle :: Sitemap -> RouteT Sitemap IO ()
-> handle url =
+> route :: Sitemap -> RouteT Sitemap IO ()
+> route url =
 >     case url of
 >       _ -> do liftIO $ print url
 >               s <- showURL url
->               liftIO $ putStrLn s
+>               liftIO $ Text.putStrLn s
 
 Normally the @case@ statement would match on the different constructors and map them to different handlers. But in this case we use the same handler for all constructors. Also, instead of running in the IO monad, we would typically use a web framework monad like Happstack's 'ServerPartT'.
 
@@ -88,15 +92,16 @@ We now have two pieces:
 
  2. 'handle' - which maps 'Sitemap' to handlers
 
-We tie these two pieces together use 'toSiteRouteT':
+ We use 'runRouteT' to unwrap the 'RouteT' layer. And then we use
+'boomerangSite' to convert the 'route' function into a 'Site':
 
 > site :: Site Sitemap (IO ())
-> site = toSiteRouteT handle sitemap
+> site = setDefault Home $ boomerangSite (runRouteT route) sitemap
 
 This gives as a standard 'Site' value that we can use with 'runSite'
 or with framework specific wrappers like @implSite@.
 
-If we were not using 'RouteT' then we could use @toSite@ instead.
+If we were not using 'RouteT' then we would just need 'boomerangSite'.
 
 Now we can create a simple test function that takes the path info part
 of a url and runs our site:
@@ -104,7 +109,7 @@ of a url and runs our site:
 > test :: String -- ^ path info of incoming url
 >      -> IO ()
 > test path = 
->     case runSite "" site path of
+>     case runSite Text.empty site (Text.encodeUtf8 (Text.pack path)) of
 >       (Left e)   -> putStrLn e
 >       (Right io) -> io
 
@@ -125,15 +130,15 @@ Here is a simple wrapper to call test interactively:
 Here are two more helper functions you can use to experiment interactively:
 
 > -- | a little function to test rendering a url
-> showurl :: Sitemap -> String
+> showurl :: Sitemap -> Text
 > showurl url = 
 >     let (ps, params) = formatPathSegments site url
 >     in (encodePathInfo ps params)
 
 > -- | a little function to test parsing a url
 > testParse :: String -> Either String Sitemap
-> testParse pathInfo = 
->     case parsePathSegments site $ decodePathInfo pathInfo of
+> testParse pathInfo =
+>     case parsePathSegments site $ decodePathInfo (Text.encodeUtf8 (Text.pack pathInfo)) of
 >       (Left e)  -> Left (show e)
 >       (Right a) -> Right a
 

@@ -171,7 +171,6 @@ boomerangSite handler r@(PrinterParser pf sf) =
       showErrors paths err = (showParserError showPos err) ++ " while parsing " ++ show paths
       showPos (MajorMinorPos s c) = "path segment " ++ show (s + 1) ++ ", character " ++ show c
 
-
 boomerangSiteRouteT :: (url -> RouteT url m a) -- ^ handler function
        -> Router url -- ^ the router
        -> Site url (m a)
