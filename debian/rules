@@ -1,0 +1,11 @@
+#!/usr/bin/make -f
+
+DEB_CABAL_PACKAGE = web-routes-boomerang
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/hlibrary.mk
+
+
+# How to install an extra file into the documentation package
+#binary-fixup/libghc-web-routes-boomerang-doc::
+#	echo "Some informative text" > debian/libghc-web-routes-boomerang-doc/usr/share/doc/libghc-web-routes-boomerang-doc/AnExtraDocFile
