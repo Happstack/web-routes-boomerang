@@ -103,10 +103,10 @@ If we were not using 'RouteT' then we could use @boomerangSite@ instead.
 Now we can create a simple test function that takes the path info part
 of a url and runs our site:
 
-> test :: String -- ^ path info of incoming url
+> test :: ByteString -- ^ path info of incoming url
 >      -> IO ()
 > test path = 
->     case runSite "" site path of
+>     case runSite "" site (decodePathInfo path) of
 >       (Left e)   -> putStrLn e
 >       (Right io) -> io
 
