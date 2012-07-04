@@ -105,7 +105,7 @@ of a url and runs our site:
 
 > test :: ByteString -- ^ path info of incoming url
 >      -> IO ()
-> test path = 
+> test path =
 >     case runSite "" site (decodePathInfo path) of
 >       (Left e)   -> putStrLn e
 >       (Right io) -> io
@@ -123,24 +123,24 @@ Here is a simple wrapper to call test interactively:
 > -- | interactively call 'test'
 > main :: IO ()
 > main = mapM_ test =<< fmap lines getContents
-        
+
 Here are two more helper functions you can use to experiment interactively:
 
 > -- | a little function to test rendering a url
 > showurl :: Sitemap -> String
-> showurl url = 
+> showurl url =
 >     let (ps, params) = formatPathSegments site url
 >     in (encodePathInfo ps params)
 
 > -- | a little function to test parsing a url
 > testParse :: String -> Either String Sitemap
-> testParse pathInfo = 
+> testParse pathInfo =
 >     case parsePathSegments site $ decodePathInfo pathInfo of
 >       (Left e)  -> Left (show e)
 >       (Right a) -> Right a
 
 -}
-module Web.Routes.Boomerang 
+module Web.Routes.Boomerang
     ( module Text.Boomerang
     , module Text.Boomerang.Strings
     , Router
@@ -151,7 +151,10 @@ module Web.Routes.Boomerang
 import Data.Text              (Text, pack, unpack)
 import Text.Boomerang          -- (PrinterParser(..), ParserError(..), (:-), condenseErrors, parse1, showParserError, unparse1)
 import Text.Boomerang.Strings  -- (StringsPos(..), isComplete)
-import Web.Routes             (RouteT(..), Site(..))
+import Text.Boomerang.Texts as Texts  -- (StringsPos(..), isComplete)
+import Text.ParserCombinators.Parsec.Prim (State(..), getParserState, setParserState)
+import Text.Parsec.Pos        (sourceLine, sourceColumn, setSourceColumn, setSourceLine)
+import Web.Routes             (RouteT(..), Site(..), PathInfo(..), URLParser)
 
 type Router url = PrinterParser StringsError [String] () (url :- ())
 
@@ -175,3 +178,23 @@ boomerangSiteRouteT :: (url -> RouteT url m a) -- ^ handler function
        -> Router url -- ^ the router
        -> Site url (m a)
 boomerangSiteRouteT handler router = boomerangSite (flip $ unRouteT . handler) router
+
+-- | convert to a 'URLParser' so we can create a 'PathInfo' instance
+boomerangFromPathSegments :: PrinterParser StringsError [Text] () (url :- ()) -> URLParser url
+boomerangFromPathSegments (PrinterParser prs _) =
+    do st <- getParserState
+       let results = runParser prs (stateInput st) (MajorMinorPos (fromIntegral $ sourceLine (statePos st)) (fromIntegral $ sourceColumn (statePos st)))
+       case [ ((f (), tok), pos) | (Right ((f, tok), pos)) <- results, Texts.isComplete tok ] of
+         ((((u :- ()), tok), pos) : _) ->
+             do let st' = st { statePos   = setSourceColumn (setSourceLine (statePos st) (fromIntegral $ major pos)) (fromIntegral $ minor pos)
+                             , stateInput = tok
+                             }
+                setParserState st'
+                return u
+
+-- | convert to the type expected by 'toPathSegments' from 'PathInfo'
+boomerangToPathSegments :: PrinterParser StringsError [Text] () (url :- ()) -> (url -> [Text])
+boomerangToPathSegments pp =
+    \url -> case unparse1 [] pp url of
+              Nothing -> error $ "boomerangToPathSegments: could not convert url to [Text]"
+              (Just txts) -> txts
