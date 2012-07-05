@@ -2,41 +2,44 @@ Source: haskell-web-routes-boomerang
 Priority: extra
 Section: haskell
 Maintainer: David Fox <dsf@seereason.com>
-Build-Depends: debhelper (>= 7.0),
-               haskell-devscripts (>= 0.8),
-               cdbs,
-               ghc,
-               ghc-prof,
-               libghc-base-dev (<< 5) | ghc,
-               libghc-base-dev (>= 4) | ghc,
-               libghc-base-prof (<< 5) | ghc,
-               libghc-base-prof (>= 4) | ghc,
-               libghc-boomerang-dev,
-               libghc-boomerang-prof,
-               libghc-mtl-dev,
-               libghc-mtl-prof,
-               libghc-text-dev (<< 0.12),
-               libghc-text-dev (>= 0.11),
-               libghc-text-prof (<< 0.12),
-               libghc-text-prof (>= 0.11),
-               libghc-web-routes-dev (>= 0.26),
-               libghc-web-routes-prof (>= 0.26)
-Build-Depends-Indep: ghc-doc,
-                     libghc-base-doc (<< 5) | ghc,
-                     libghc-base-doc (>= 4) | ghc,
-                     libghc-boomerang-doc,
-                     libghc-mtl-doc,
-                     libghc-text-doc (<< 0.12),
-                     libghc-text-doc (>= 0.11),
-                     libghc-web-routes-doc (>= 0.26)
-Standards-Version: 3.9.1
+Build-Depends: debhelper (>= 7.0)
+               , haskell-devscripts (>= 0.8)
+               , cdbs
+               , ghc
+               , ghc-prof
+               , libghc-base-dev (>= 4) | ghc
+               , libghc-base-dev (<< 5) | ghc
+               , libghc-base-prof (>= 4) | ghc-prof
+               , libghc-base-prof (<< 5) | ghc-prof
+               , libghc-boomerang-dev
+               , libghc-boomerang-prof
+               , libghc-mtl-dev
+               , libghc-mtl-prof
+               , libghc-parsec3-dev (>= 3) | libghc-parsec2-dev (<< 3)
+               , libghc-parsec3-prof (>= 3) | libghc-parsec2-prof (<< 3)
+               , libghc-text-dev (>= 0.11)
+               , libghc-text-dev (<< 0.12)
+               , libghc-text-prof (>= 0.11)
+               , libghc-text-prof (<< 0.12)
+               , libghc-web-routes-dev (>= 0.26)
+               , libghc-web-routes-prof (>= 0.26)
+Build-Depends-Indep: ghc-doc
+                     , libghc-base-doc (>= 4) | ghc-doc
+                     , libghc-base-doc (<< 5) | ghc-doc
+                     , libghc-boomerang-doc
+                     , libghc-mtl-doc
+                     , libghc-parsec3-doc (>= 3) | libghc-parsec2-doc (<< 3)
+                     , libghc-text-doc (>= 0.11)
+                     , libghc-text-doc (<< 0.12)
+                     , libghc-web-routes-doc (>= 0.26)
+Standards-Version: 3.9.3
 Homepage: http://hackage.haskell.org/package/web-routes-boomerang
 
 Package: libghc-web-routes-boomerang-dev
 Architecture: any
-Depends: ${shlibs:Depends},
-         ${haskell:Depends},
-         ${misc:Depends}
+Depends: ${shlibs:Depends}
+         , ${haskell:Depends}
+         , ${misc:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
 Provides: ${haskell:Provides}
@@ -50,8 +53,8 @@ Description: Library for maintaining correctness and composability of URLs withi
 
 Package: libghc-web-routes-boomerang-prof
 Architecture: any
-Depends: ${haskell:Depends},
-         ${misc:Depends}
+Depends: ${haskell:Depends}
+         , ${misc:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
 Provides: ${haskell:Provides}
@@ -66,8 +69,8 @@ Description: Library for maintaining correctness and composability of URLs withi
 Package: libghc-web-routes-boomerang-doc
 Architecture: all
 Section: doc
-Depends: ${haskell:Depends},
-         ${misc:Depends}
+Depends: ${haskell:Depends}
+         , ${misc:Depends}
 Recommends: ${haskell:Recommends}
 Suggests: ${haskell:Suggests}
 Description: Library for maintaining correctness and composability of URLs within an application.
