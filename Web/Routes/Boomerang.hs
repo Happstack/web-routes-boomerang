@@ -146,9 +146,14 @@ module Web.Routes.Boomerang
     , Router
     , boomerangSite
     , boomerangSiteRouteT
+    , boomerangFromPathSegments
+    , boomerangToPathSegments
     ) where
 
+import Data.Function          (on)
+import Data.List              (maximumBy)
 import Data.Text              (Text, pack, unpack)
+import qualified Data.Text    as T
 import Text.Boomerang          -- (PrinterParser(..), ParserError(..), (:-), condenseErrors, parse1, showParserError, unparse1)
 import Text.Boomerang.Texts    -- (StringsPos(..), isComplete)
 import Text.ParserCombinators.Parsec.Prim (State(..), getParserState, setParserState)
@@ -186,13 +191,19 @@ boomerangFromPathSegments :: PrinterParser TextsError [Text] () (url :- ()) -> U
 boomerangFromPathSegments (PrinterParser prs _) =
     do st <- getParserState
        let results = runParser prs (stateInput st) (MajorMinorPos (fromIntegral $ sourceLine (statePos st)) (fromIntegral $ sourceColumn (statePos st)))
-       case [ ((f (), tok), pos) | (Right ((f, tok), pos)) <- results, isComplete tok ] of
-         ((((u :- ()), tok), pos) : _) ->
-             do let st' = st { statePos   = setSourceColumn (setSourceLine (statePos st) (fromIntegral $ major pos)) (fromIntegral $ minor pos)
-                             , stateInput = tok
-                             }
-                setParserState st'
-                return u
+           successes = [ ((f (), tok), pos) | (Right ((f, tok), pos)) <- results]
+       case successes of
+         [] -> fail (showParserError (const "") $ head $ bestErrors  [e | Left e <- results])
+         _ -> case (maximumBy (compare `on` snd) successes) of
+                (((u :- ()), tok), pos) ->
+                    do let st' = st { statePos   = setSourceColumn (setSourceLine (statePos st) (fromIntegral $ major pos)) (fromIntegral $ minor pos)
+                                    , stateInput = trim tok
+                                    }
+                       setParserState st'
+                       return u
+    where
+      trim []     = []
+      trim (t:ts) = if T.null t then ts else (t:ts)
 
 -- | convert to the type expected by 'toPathSegments' from 'PathInfo'
 boomerangToPathSegments :: PrinterParser TextsError [Text] () (url :- ()) -> (url -> [Text])
