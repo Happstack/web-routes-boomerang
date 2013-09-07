@@ -22,7 +22,7 @@ use the versions from "Control.Category" instead.
 > import Prelude              hiding (id, (.))
 > import Control.Category     (Category(id, (.)))
 > import Control.Monad.Trans  (MonadIO(liftIO))
-> import Text.Boomerang.TH    (derivePrinterParsers)
+> import Text.Boomerang.TH    (makeBoomerangs)
 > import Web.Routes           (Site(..), RouteT(..), decodePathInfo, encodePathInfo, runSite, showURL)
 > import Web.Routes.Boomerang (Router, (<>), (</>), int, parse1, boomerangSiteRouteT, anyString, parseStrings)
 
@@ -37,9 +37,9 @@ Next we define a data type that represents our sitemap.
 >    deriving (Eq, Show)
 
 
-To use the 'Sitemap' type with @boomerang@ we need to call 'derivePrinterParsers':
+To use the 'Sitemap' type with @boomerang@ we need to call 'makeBoomerangs':
 
-> $(derivePrinterParsers ''Sitemap)
+> $(makeBoomerangs ''Sitemap)
 
 That will create new combinators corresponding to the constructors for
 'Sitemap'. They will be named, @rHome@, @rUserOverview@, etc.
@@ -154,20 +154,20 @@ import Data.Function          (on)
 import Data.List              (maximumBy)
 import Data.Text              (Text, pack, unpack)
 import qualified Data.Text    as T
-import Text.Boomerang          -- (PrinterParser(..), ParserError(..), (:-), condenseErrors, parse1, showParserError, unparse1)
-import Text.Boomerang.Texts    -- (StringsPos(..), isComplete)
+import Text.Boomerang
+import Text.Boomerang.Texts
 import Text.ParserCombinators.Parsec.Prim (State(..), getParserState, setParserState)
 import Text.Parsec.Pos        (sourceLine, sourceColumn, setSourceColumn, setSourceLine)
 import Web.Routes             (RouteT(..), Site(..), PathInfo(..), URLParser)
 
--- | 'Router a b' is a simple type alias for 'PrinterParser TextsError [Text] a b'
-type Router a b = PrinterParser TextsError [Text] a b
+-- | 'Router a b' is a simple type alias for 'Boomerang TextsError [Text] a b'
+type Router a b = Boomerang TextsError [Text] a b
 
 -- | function which creates a 'Site' from a 'Router' and a handler
 boomerangSite :: ((url -> [(Text, Maybe Text)] -> Text) -> url -> a) -- ^ handler function
        -> Router () (url :- ()) -- ^ the router
        -> Site url a
-boomerangSite handler r@(PrinterParser pf sf) =
+boomerangSite handler r@(Boomerang pf sf) =
     Site { handleSite = handler
          , formatPathSegments =  \url ->
              case unparseTexts r url of
@@ -187,8 +187,8 @@ boomerangSiteRouteT :: (url -> RouteT url m a) -- ^ handler function
 boomerangSiteRouteT handler router = boomerangSite (flip $ unRouteT . handler) router
 
 -- | convert to a 'URLParser' so we can create a 'PathInfo' instance
-boomerangFromPathSegments :: PrinterParser TextsError [Text] () (url :- ()) -> URLParser url
-boomerangFromPathSegments (PrinterParser prs _) =
+boomerangFromPathSegments :: Boomerang TextsError [Text] () (url :- ()) -> URLParser url
+boomerangFromPathSegments (Boomerang prs _) =
     do st <- getParserState
        let results = runParser prs (stateInput st) (MajorMinorPos (fromIntegral $ sourceLine (statePos st)) (fromIntegral $ sourceColumn (statePos st)))
            successes = [ ((f (), tok), pos) | (Right ((f, tok), pos)) <- results]
@@ -206,7 +206,7 @@ boomerangFromPathSegments (PrinterParser prs _) =
       trim (t:ts) = if T.null t then ts else (t:ts)
 
 -- | convert to the type expected by 'toPathSegments' from 'PathInfo'
-boomerangToPathSegments :: PrinterParser TextsError [Text] () (url :- ()) -> (url -> [Text])
+boomerangToPathSegments :: Boomerang TextsError [Text] () (url :- ()) -> (url -> [Text])
 boomerangToPathSegments pp =
     \url -> case unparse1 [] pp url of
               Nothing -> error $ "boomerangToPathSegments: could not convert url to [Text]"
