@@ -1,5 +1,5 @@
 Name:             web-routes-boomerang
-Version:          0.28.0
+Version:          0.28.1
 License:          BSD3
 License-File:     LICENSE
 Author:           jeremy@seereason.com
@@ -16,7 +16,7 @@ Library
                           boomerang >= 1.4,
                           mtl,
                           parsec == 3.1.*,
-                          text == 0.11.*,
+                          text >= 0.11 && < 1.1,
                           web-routes >= 0.26
         Exposed-Modules:  Web.Routes.Boomerang
 
