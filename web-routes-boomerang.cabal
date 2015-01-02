@@ -23,5 +23,6 @@ Library
         Extensions:       TypeOperators
 
 source-repository head
-    type:     darcs
-    location: http://hub.darcs.net/stepcut/web-routes
+    type:     git
+    location: https://github.com/Happstack/web-routes.git
+    subdir:   web-routes-boomerang
