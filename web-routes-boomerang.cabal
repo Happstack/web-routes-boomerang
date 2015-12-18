@@ -1,15 +1,16 @@
 Name:             web-routes-boomerang
-Version:          0.28.4
+Version:          0.28.4.1
 License:          BSD3
 License-File:     LICENSE
 Author:           jeremy@seereason.com
 Maintainer:       partners@seereason.com
 Bug-Reports:      http://bugzilla.seereason.com/
 Category:         Web, Language
-Synopsis:         Library for maintaining correctness and composability of URLs within an application.
+Synopsis:         Use boomerang for type-safe URL parsers/printers
 Description:      This module add support for creating url parsers/printers using a single unified grammar specification
 Cabal-Version:    >= 1.6
 Build-type:       Simple
+tested-with:      GHC == 7.6.3, GHC == 7.8.4, GHC == 7.10.3
 
 Library
         Build-Depends:    base >= 4 && < 5,
@@ -24,5 +25,4 @@ Library
 
 source-repository head
     type:     git
-    location: https://github.com/Happstack/web-routes.git
-    subdir:   web-routes-boomerang
+    location: https://github.com/Happstack/web-routes-boomerang.git

@@ -1,15 +1,29 @@
-with (import <nixpkgs> {}).pkgs;
-let pkg = haskellngPackages.callPackage
-            ({ mkDerivation, base, boomerang, mtl, parsec, stdenv, text
-             , web-routes
-             }:
-             mkDerivation {
-               pname = "web-routes-boomerang";
-               version = "0.28.3";
-               src = ./.;
-               buildDepends = [ base boomerang mtl parsec text web-routes ];
-               description = "Library for maintaining correctness and composability of URLs within an application";
-               license = stdenv.lib.licenses.bsd3;
-             }) {};
+{ nixpkgs ? import <nixpkgs> {}, compiler ? "default" }:
+
+let
+
+  inherit (nixpkgs) pkgs;
+
+  f = { mkDerivation, base, boomerang, mtl, parsec, stdenv, text
+      , web-routes
+      }:
+      mkDerivation {
+        pname = "web-routes-boomerang";
+        version = "0.28.4";
+        src = ./.;
+        libraryHaskellDepends = [
+          base boomerang mtl parsec text web-routes
+        ];
+        description = "Library for maintaining correctness and composability of URLs within an application";
+        license = stdenv.lib.licenses.bsd3;
+      };
+
+  haskellPackages = if compiler == "default"
+                       then pkgs.haskellPackages
+                       else pkgs.haskell.packages.${compiler};
+
+  drv = haskellPackages.callPackage f {};
+
 in
-  pkg.env
+
+  if pkgs.lib.inNixShell then drv.env else drv
