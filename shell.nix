@@ -5,14 +5,14 @@ let
   inherit (nixpkgs) pkgs;
 
   f = { mkDerivation, base, boomerang, mtl, parsec, stdenv, text
-      , web-routes
+      , web-routes, cabal-install
       }:
       mkDerivation {
         pname = "web-routes-boomerang";
         version = "0.28.4";
         src = ./.;
         libraryHaskellDepends = [
-          base boomerang mtl parsec text web-routes
+          base boomerang mtl parsec text web-routes cabal-install
         ];
         description = "Library for maintaining correctness and composability of URLs within an application";
         license = stdenv.lib.licenses.bsd3;
