@@ -4,7 +4,7 @@ License:          BSD3
 License-File:     LICENSE
 Author:           jeremy@seereason.com
 Maintainer:       partners@seereason.com
-Bug-Reports:      http://bugzilla.seereason.com/
+Bug-Reports:      https://github.com/Happstack/web-routes-boomerang/issues
 Category:         Web, Language
 Synopsis:         Use boomerang for type-safe URL parsers/printers
 Description:      This module add support for creating url parsers/printers using a single unified grammar specification
